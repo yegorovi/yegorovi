@@ -199,24 +199,18 @@ def build_rows(data, theme, image_data=None):
         artist = clean_text(music.get("state"))
         track = clean_text(music.get("details"))
         app = clean_text(music.get("name"))
+        album = clean_text((music.get("assets") or {}).get("large_text"))
         lines = []
         if app:
-            rows.append(("line", [("  Слушает: ", "cc"), (app, "value")]))
+            lines.append([(app, "value")])
         if track:
             lines.append([(track, "green")])
         if artist:
             lines.append([(artist, "text")])
-        if not track and not artist:
+        if album:
+            lines.append([(album, "cc")])
+        if not lines:
             lines = [[("\u266a нет данных", "cc")]]
-        filled = progress_cells(music.get("timestamps"))
-        if filled is not None:
-            lines.append([
-                ("[", "cc"),
-                ("█" * filled, "green"),
-                ("░" * (10 - filled), "cc"),
-                ("] ", "cc"),
-                (f"{filled * 10}%", "cc"),
-            ])
         rows.append(("player", image_data, lines))
 
     if game and game.get("name"):
@@ -304,14 +298,15 @@ def render(rows, pal):
         elif kind == "player":
             uri, lines = row[1], row[2]
             n = len(lines)
-            size = n * LH
+            block_h = (n - 1) * LH
             x_text = PAD
             if uri:
-                iy = y - 14
+                size = 30
+                iy = y + block_h + 10 - size
                 cid = f"playclip{len(thumbs)}"
                 defs.append(
                     f'<clipPath id="{cid}"><rect x="{PAD}" y="{iy}" '
-                    f'width="{size}" height="{size}" rx="8"/></clipPath>'
+                    f'width="{size}" height="{size}" rx="6"/></clipPath>'
                 )
                 thumbs.append(
                     f'<image href="{uri}" x="{PAD}" y="{iy}" '
@@ -320,7 +315,7 @@ def render(rows, pal):
                 )
                 thumbs.append(
                     f'<rect x="{PAD}.5" y="{iy}.5" width="{size - 1}" '
-                    f'height="{size - 1}" rx="8" fill="none" '
+                    f'height="{size - 1}" rx="6" fill="none" '
                     f'stroke="{pal["border"]}"/>'
                 )
                 x_text = PAD + size + 8
@@ -334,7 +329,7 @@ def render(rows, pal):
                     )
                 out.append("</tspan>")
                 text_parts.append("".join(out))
-                max_y = yy
+                max_y = max(max_y, yy)
             y = y + n * LH
             continue
         elif kind == "sep":
