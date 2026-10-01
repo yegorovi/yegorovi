@@ -1,0 +1,4 @@
+dist/
+image_cache/
+*.log
+__pycache__/
