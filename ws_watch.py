@@ -110,12 +110,18 @@ def fingerprint(data):
     """
     acts = []
     for act in data.get("activities") or []:
+        assets = act.get("assets") or {}
+        image = assets.get("large_image") or ""
+        if image:
+            # CDN-подпись (ex=..&hm=..) ротируется каждые секунды — режем
+            image = image.split("?")[0]
         acts.append({
             "type": act.get("type"),
             "name": act.get("name"),
             "details": act.get("details"),
             "state": act.get("state"),
-            "assets": act.get("assets"),
+            "large_image": image,
+            "large_text": assets.get("large_text"),
         })
     slim = {
         "status": data.get("discord_status"),
