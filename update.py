@@ -186,7 +186,7 @@ def build_rows(data, theme, image_data=None):
     rows.append(("kv", "Age", str(age())))
     rows.append(("blank",))
 
-    rows.append(("sec", "Activity"))
+    rows.append(("sec_r", "Discord Activity", "yegorovi"))
     icon, label = STATUS.get(data.get("discord_status", "offline"), STATUS["offline"])
     platforms = [name for key, name in (
         ("active_on_discord_desktop", "desktop"),
@@ -202,9 +202,9 @@ def build_rows(data, theme, image_data=None):
         track = clean_text(music.get("details"))
         app = clean_text(music.get("name"))
         album = clean_text((music.get("assets") or {}).get("large_text"))
-        lines = []
         if app:
-            lines.append([(app, "value")])
+            rows.append(("line", [("Listining: " + app, "text")]))
+        lines = []
         if track:
             lines.append([(track, "green")])
         if artist:
@@ -287,6 +287,11 @@ def render(rows, pal):
             title = row[1]
             dashes = "─" * max(4, limit - len(title) - 1)
             segs = [(title, "text"), (" " + dashes, "cc")]
+        elif kind == "sec_r":
+            title, suffix = row[1], row[2]
+            dashes = "─" * max(4, limit - len(title) - len(suffix) - 2)
+            segs = [(title, "text"), (" " + dashes + " ", "cc"),
+                    (suffix, "cc")]
         elif kind == "kv":
             key, val = row[1], row[2]
             dots = max(2, KV_COL - (len(key) + 2))
@@ -304,7 +309,7 @@ def render(rows, pal):
             x_text = PAD
             if uri:
                 size = 30
-                iy = max(y + block_h + 10 - size, y - LH + 8)
+                iy = y - 10
                 cid = f"playclip{len(thumbs)}"
                 defs.append(
                     f'<clipPath id="{cid}"><rect x="{PAD}" y="{iy}" '
