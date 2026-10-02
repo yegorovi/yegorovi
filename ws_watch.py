@@ -9,7 +9,9 @@
 op3=heartbeat, op0=t(PRESENCE_UPDATE|INIT_STATE).
 """
 import asyncio
+import hashlib
 import json
+import re
 import subprocess
 import sys
 import urllib.request
@@ -25,6 +27,8 @@ import update  # noqa: E402
 LANYARD_ID = "505825418624892939"
 WS_URL = "wss://api.lanyard.rest/socket"
 OUT_WORKTREE = Path("/opt/profile_out")
+README = HERE / "README.md"
+RAW_BASE = "https://raw.githubusercontent.com/yegorovi/yegorovi/output/"
 
 
 def log(msg):
@@ -37,6 +41,65 @@ def log(msg):
         pass
 
 
+def _git(worktree, *args):
+    subprocess.run(["git", "-C", str(worktree), *args], check=True)
+
+
+def _has_changes(worktree):
+    subprocess.run(["git", "-C", str(worktree), "add", "-A"], check=True)
+    r = subprocess.run(
+        ["git", "-C", str(worktree), "diff", "--cached", "--quiet"])
+    return r.returncode != 0
+
+
+def publish(dark: bytes, light: bytes):
+    """Версионированные имена в output + переписанный README в main.
+
+    raw.githubusercontent кэширует URL 5 минут (max-age=300) и игнорирует
+    query-string в ключе кэша, поэтому обход — каждый раз НОВОЕ имя файла.
+    HTML профиля github.com подхватывает README за ~1 секунду.
+    """
+    ver = hashlib.md5(dark + light).hexdigest()[:8]
+    names = {
+        "neofetch-dark.svg": f"neofetch-{ver}-dark.svg",
+        "neofetch-light.svg": f"neofetch-{ver}-light.svg",
+    }
+    payload = {
+        names["neofetch-dark.svg"]: dark,
+        names["neofetch-light.svg"]: light,
+    }
+
+    # --- ветка output: один набор файлов с актуальным версионным именем
+    changed = False
+    for f in OUT_WORKTREE.glob("neofetch*.svg"):
+        if f.name not in payload:
+            f.unlink()
+            changed = True
+    for name, data in payload.items():
+        dst = OUT_WORKTREE / name
+        if not dst.exists() or dst.read_bytes() != data:
+            dst.write_bytes(data)
+            changed = True
+    if changed and _has_changes(OUT_WORKTREE):
+        _git(OUT_WORKTREE, "commit", "-q", "-m", f"update {ver}")
+        _git(OUT_WORKTREE, "push", "-q", "origin", "output")
+        log(f"pushed output ({ver})")
+
+    # --- main: README ссылается на свежие имена
+    text = README.read_text(encoding="utf-8")
+    new_text = re.sub(
+        r"neofetch(?:-[0-9a-f]{8})?-(dark|light)\.svg",
+        lambda m: names[f"neofetch-{m.group(1)}.svg"],
+        text,
+    )
+    if new_text != text:
+        README.write_text(new_text, encoding="utf-8", newline="\n")
+        if _has_changes(HERE):
+            _git(HERE, "commit", "-q", "-m", f"readme {ver}")
+            _git(HERE, "push", "-q", "origin", "main")
+            log(f"pushed readme ({ver})")
+
+
 def regenerate():
     try:
         update.main_once()
@@ -47,27 +110,10 @@ def regenerate():
     if "--push" not in sys.argv or not OUT_WORKTREE.exists():
         return
     try:
-        changed = False
-        for name in ("neofetch-dark.svg", "neofetch-light.svg"):
-            src = update.DIST / name
-            dst = OUT_WORKTREE / name
-            if not dst.exists() or src.read_bytes() != dst.read_bytes():
-                dst.write_bytes(src.read_bytes())
-                changed = True
-        if not changed:
-            return
-        subprocess.run(["git", "-C", str(OUT_WORKTREE), "add", "-A"],
-                       check=True)
-        diff = subprocess.run(
-            ["git", "-C", str(OUT_WORKTREE), "diff", "--cached", "--quiet"])
-        if diff.returncode == 0:
-            return
-        subprocess.run(
-            ["git", "-C", str(OUT_WORKTREE), "commit", "-q", "-m", "update"],
-            check=True)
-        subprocess.run(["git", "-C", str(OUT_WORKTREE), "push", "-q",
-                        "origin", "output"], check=True, timeout=60)
-        log("pushed to output")
+        publish(
+            (update.DIST / "neofetch-dark.svg").read_bytes(),
+            (update.DIST / "neofetch-light.svg").read_bytes(),
+        )
     except Exception as exc:
         log(f"push error: {exc}")
 
