@@ -203,6 +203,7 @@ def build_rows(data, theme, image_data=None):
         app = clean_text(music.get("name"))
         album = clean_text((music.get("assets") or {}).get("large_text"))
         if app:
+            rows.append(("blank",))
             rows.append(("line", [("Listining: " + app, "value")]))
         lines = []
         if track:
