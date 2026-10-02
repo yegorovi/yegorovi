@@ -125,9 +125,8 @@ def fingerprint(data):
         "spotify": bool(data.get("spotify")),
         "activities": acts,
     }
-    return hashlib.md5(
-        json.dumps(slim, sort_keys=True, ensure_ascii=False).encode()
-    ).hexdigest()
+    blob = json.dumps(slim, sort_keys=True, ensure_ascii=False)
+    return hashlib.md5(blob.encode()).hexdigest(), blob
 
 
 def regenerate():
@@ -180,11 +179,14 @@ async def listen():
                         if kind not in ("INIT_STATE", "PRESENCE_UPDATE"):
                             continue
                         data = msg.get("d") or {}
-                        fp = fingerprint(data)
+                        fp, blob = fingerprint(data)
                         if fp == _last_fp:
                             continue
+                        prev = _last_fp
                         _last_fp = fp
-                        log(f"event {kind} -> activity changed ({fp[:8]})")
+                        log(f"event {kind} -> activity changed ({fp[:8]}) "
+                            f"prev={prev and prev[:8]}")
+                        log(f"  slim={blob[:600]}")
                         regenerate()
                 finally:
                     hb.cancel()
