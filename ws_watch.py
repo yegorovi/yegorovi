@@ -14,6 +14,7 @@ import json
 import re
 import subprocess
 import sys
+import time
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -29,6 +30,7 @@ WS_URL = "wss://api.lanyard.rest/socket"
 OUT_WORKTREE = Path("/opt/profile_out")
 README = HERE / "README.md"
 RAW_BASE = "https://raw.githubusercontent.com/yegorovi/yegorovi/output/"
+_last_fp = None  # отпечаток активности: регенерируем только при её смене
 
 
 def log(msg):
@@ -100,6 +102,34 @@ def publish(dark: bytes, light: bytes):
             log(f"pushed readme ({ver})")
 
 
+def fingerprint(data):
+    """Отпечаток того, что видно на карточке: статус + активности.
+
+    presence шлётся каждые ~3-10 с даже без изменений — regen/push делаем
+    только когда трек/игра/статус реально сменились (появился/пропал).
+    """
+    acts = []
+    for act in data.get("activities") or []:
+        acts.append({
+            "type": act.get("type"),
+            "name": act.get("name"),
+            "details": act.get("details"),
+            "state": act.get("state"),
+            "assets": act.get("assets"),
+        })
+    slim = {
+        "status": data.get("discord_status"),
+        "desktop": data.get("active_on_discord_desktop"),
+        "mobile": data.get("active_on_discord_mobile"),
+        "web": data.get("active_on_discord_web"),
+        "spotify": bool(data.get("spotify")),
+        "activities": acts,
+    }
+    return hashlib.md5(
+        json.dumps(slim, sort_keys=True, ensure_ascii=False).encode()
+    ).hexdigest()
+
+
 def regenerate():
     try:
         update.main_once()
@@ -125,6 +155,7 @@ async def heartbeat(ws, interval_ms):
 
 
 async def listen():
+    global _last_fp
     delay = 1
     while True:
         try:
@@ -146,9 +177,15 @@ async def listen():
                         if msg.get("op") != 0:
                             continue
                         kind = msg.get("t")
-                        if kind in ("INIT_STATE", "PRESENCE_UPDATE"):
-                            log(f"event {kind}")
-                            regenerate()
+                        if kind not in ("INIT_STATE", "PRESENCE_UPDATE"):
+                            continue
+                        data = msg.get("d") or {}
+                        fp = fingerprint(data)
+                        if fp == _last_fp:
+                            continue
+                        _last_fp = fp
+                        log(f"event {kind} -> activity changed ({fp[:8]})")
+                        regenerate()
                 finally:
                     hb.cancel()
         except asyncio.CancelledError:
