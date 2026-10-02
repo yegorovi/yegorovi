@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="644" viewBox="0 0 760 644" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="16px">
+<rect x="0.5" y="0.5" width="759" height="643" rx="15" fill="#161b22" stroke="#30363d"/>
+<defs>
+<clipPath id="playclip0"><rect x="24" y="220" width="30" height="30" rx="6"/></clipPath>
+</defs>
+<image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABwCAIAAABJgmMcAAAF8klEQVR4nO2cW0/bShCAZ727vgQEBBpSGqGI8v9/T6uqD5CWhgYDSUOI7V3vnoc5WVmlqs5ldNbtme8hsiBB6y8zO+Oxhdhut8DQkcRewO8GCyWGhRLDQolhocSwUGJYKDEslBgWSgwLJYaFEsNCiWGhxLBQYlgoMSyUGBZKDAslhoUSw0KJYaHEsFBiWCgxLJQYFkoMCyWGhRLDQolhocSwUGJYKDEslBgWSgwLJYaFEsNCiWGhxPwmQr334TUuKvYC/jbBmhACAJIkSZI/w6JtW++9ECKi2b4L7QoSQgghkiRBld77tm2rqqrrervdVlVVVZVz7uLioigK51yUBfdUaDAopfTeK6W89865tm27+qqqMsa0bYv6hBCoeDAY4Dfx36+8p0KllADQDcDwaq1t2xZ2AYvvx7DFWI7iMdBHoUKIsiyXy+XLAITdpul3aK211kVRPD09WWtjr72XQgFgPp9vNhvM9BB6ACCEUEplWZZlWVEURVFkWZamqRDi/fv3xpi44Qm9FZokiVIKS1CapnmeZ1k2GAxQn9a6W9nxOLpKpKdCEe/9dDo9Pj7GLTI0Q92u03sfqlPchgnptVAASNNUKYVVCACw0DdNgzUKy5Qxxlrb3Rki0nehzrmqqp6fn+u6xlc02C1TIdmj24Q+C/XeJ0kym83atg2FHgC+2zGx6Kdp2jRNrGa+S3+FAoAQwhgTjkPFD61SURR5nqdpmqbphw8fNptN9NLUa6HYaUop0zTNsizP88FggMdKKQxVfI9zrg/5Dn0WirE2mUyOj4+VUlLKEH2oL7TxYke0tXbor1AA8N7v7e0VRYFV6Ls5UzDYh+Ie6LVQAHDOhVLTkxj8Ob/kgDmM73rVMCF9j9AfgpUKdh6722t0fkmhSZKsVqvHx8eqqrz3eZ4Ph0PoR5z2QmiYJMFfkOK9v7q6uru7Cx/59u1bWZbY4YeL1FjEF4r5220qf7hFhmO0maYpXj4lO/A41lkE4gvVWj89PXXz9+joqBuzAIATZaXUYrEoyzLLMmvt4eHhycmJEOLx8fHh4QHfE/VUAOIKDVfrX79+tdYGI4vFAieh3XmdEMI5d39/L6W01p6cnFxeXuJvR6PRbDb78uULVqq4RMsRzPTr6+tPnz6Fm3Gwm328HHMkSdI0TVVV6Prs7Mx7j4O7pmnG43GaphFO4wVxIhTztyzLxWKR57m1dn9/HwfJDw8P6/X6h21QaPJxz8VNM2yvWZat1+twkzkWcYRi/pZlifOk4XB4eXmJd5BOT0+vrq4WiwXGbLhOx/1BKdU0jTGmaRr8JgBASllV1Xa7xeANd6KinFqElEdBxpjNZpMkiZRyMplIKeu6xsL95s0brXUYIeNW4JzL8zzPc+ecEGI2mzVNo7VWSllrP3/+jHLxBlTEwWiECMVYw4Q1xmRZprVu2zZso1JKrXXTNN2MBgDn3Hg8Xi6XQojn5+d3794dHh4KIVarVV3X+NdOT09R8f8oQmHnFF8xfzFPUZ+11hiDuyH+HHa7xNHR0fn5edu2GON3d3e3t7d1XeOnXr9+PRqN8LdRzgsiCtVa7+3tYZ25ubmx1iqltNYAcHNzg4N6zF8UDbsnbcbj8cXFBe4JmNr4xZyfn0+nU4h9ASqi/FNrrPL39/cfP37Em5pFUQyHQynlcrlcr9dSSmPMdDo9Ozt7mb8Y16vVChef5/nBwUGe53jdGfdpnDhCkSRJrq+v5/O5Ugp2vSdWamPMq1ev3r59+5OPhyFT9y5I9OulmEIBQAgxn89vb2+7T9FIKUej0WQy+XmgdcX1Z3wXU2h4+Gu73S6XS2wksyw7ODjY39+PPjf6Z0SOUNiVlO6gCPM34pL+DfGnTdi6d59E7E/+/gPiC0V+aYld4k9kfzNYKDEslBgWSgwLJYaFEsNCiWGhxLBQYlgoMSyUGBZKDAslhoUSw0KJYaHEsFBiWCgxLJQYFkoMCyWGhRLDQolhocSwUGJYKDEslBgWSgwLJYaFEsNCiWGhxLBQYlgoMSyUGBZKzB++7JtGUYlImQAAAABJRU5ErkJggg==" x="24" y="220" width="30" height="30" preserveAspectRatio="xMidYMid slice" clip-path="url(#playclip0)"/>
+<rect x="24.5" y="220.5" width="29" height="29" rx="6" fill="none" stroke="#30363d"/>
+<text fill="#c9d1d9">
+<tspan x="24" y="40"><tspan fill="#c9d1d9">yegorovi@github</tspan><tspan fill="#6e7681"> ──────────────────────────────────────────────────────────</tspan></tspan>
+<tspan x="24" y="80"><tspan fill="#ffa657">  Name:</tspan><tspan fill="#6e7681"> ..................</tspan><tspan fill="#a5d6ff"> 0xdead.moscow</tspan></tspan>
+<tspan x="24" y="100"><tspan fill="#ffa657">  Age:</tspan><tspan fill="#6e7681"> ...................</tspan><tspan fill="#a5d6ff"> 21</tspan></tspan>
+<tspan x="24" y="140"><tspan fill="#c9d1d9">Activity</tspan><tspan fill="#6e7681"> ─────────────────────────────────────────────────────────────────</tspan></tspan>
+<tspan x="24" y="160"><tspan fill="#a5d6ff">  🟡 Idle · desktop</tspan></tspan>
+<tspan x="62" y="180"><tspan fill="#a5d6ff">Яндекс Музыка</tspan></tspan>
+<tspan x="62" y="200"><tspan fill="#3fb950">Неидеальная</tspan></tspan>
+<tspan x="62" y="220"><tspan fill="#c9d1d9">HENSY, PIZZA</tspan></tspan>
+<tspan x="62" y="240"><tspan fill="#6e7681">Неидеальная</tspan></tspan>
+<tspan x="24" y="280"><tspan fill="#c9d1d9">System</tspan><tspan fill="#6e7681"> ───────────────────────────────────────────────────────────────────</tspan></tspan>
+<tspan x="24" y="300"><tspan fill="#ffa657">  CPU:</tspan><tspan fill="#6e7681"> ...................</tspan><tspan fill="#a5d6ff"> AMD Ryzen 9 9950X3D</tspan></tspan>
+<tspan x="24" y="320"><tspan fill="#ffa657">  GPU:</tspan><tspan fill="#6e7681"> ...................</tspan><tspan fill="#a5d6ff"> AMD Radeon RX 9070 XT</tspan></tspan>
+<tspan x="24" y="340"><tspan fill="#ffa657">  RAM:</tspan><tspan fill="#6e7681"> ...................</tspan><tspan fill="#a5d6ff"> 64 GB</tspan></tspan>
+<tspan x="24" y="380"><tspan fill="#c9d1d9">Languages</tspan><tspan fill="#6e7681"> ────────────────────────────────────────────────────────────────</tspan></tspan>
+<tspan x="24" y="400"><tspan fill="#6e7681">  </tspan><tspan fill="#3572A5">Python</tspan><tspan fill="#6e7681">, </tspan><tspan fill="#b07219">Java</tspan><tspan fill="#6e7681">, </tspan><tspan fill="#f34b7d">C++</tspan><tspan fill="#6e7681">, </tspan><tspan fill="#178600">C#</tspan><tspan fill="#6e7681">, </tspan><tspan fill="#f1e05a">JavaScript</tspan><tspan fill="#6e7681">, </tspan><tspan fill="#6E4C1E">Assembly</tspan></tspan>
+<tspan x="24" y="440"><tspan fill="#c9d1d9">Hobbies</tspan><tspan fill="#6e7681"> ──────────────────────────────────────────────────────────────────</tspan></tspan>
+<tspan x="24" y="460"><tspan fill="#ffa657">  Shooting:</tspan><tspan fill="#6e7681"> ..............</tspan><tspan fill="#a5d6ff"> Tactical &amp; clay</tspan></tspan>
+<tspan x="24" y="480"><tspan fill="#ffa657">  Coding:</tspan><tspan fill="#6e7681"> ................</tspan><tspan fill="#a5d6ff"> Game servers &amp; mods</tspan></tspan>
+<tspan x="24" y="500"><tspan fill="#ffa657">  Embedded:</tspan><tspan fill="#6e7681"> ..............</tspan><tspan fill="#a5d6ff"> Microcontrollers</tspan></tspan>
+<tspan x="24" y="540"><tspan fill="#c9d1d9">Projects</tspan><tspan fill="#6e7681"> ─────────────────────────────────────────────────────────────────</tspan></tspan>
+<tspan x="24" y="560"><tspan fill="#ffa657">  DayZ:</tspan><tspan fill="#6e7681"> ..................</tspan><tspan fill="#a5d6ff"> Last-Breath</tspan></tspan>
+<tspan x="24" y="600"><tspan fill="#6e7681">──────────────────────────────────────────────────────────────────────────</tspan></tspan>
+<tspan x="24" y="620"><tspan fill="#6e7681">visitor@</tspan><tspan fill="#ffa657">yegorovi</tspan><tspan fill="#6e7681">:</tspan><tspan fill="#a5d6ff">~</tspan><tspan fill="#6e7681">$ </tspan><tspan fill="#ffa657">█<animate attributeName="fill-opacity" dur="1.06s" keyTimes="0;0.5;0.5;1" repeatCount="indefinite" values="1;1;0;0" /></tspan></tspan>
+</text>
+</svg>
