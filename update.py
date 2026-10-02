@@ -203,7 +203,7 @@ def build_rows(data, theme, image_data=None):
         app = clean_text(music.get("name"))
         album = clean_text((music.get("assets") or {}).get("large_text"))
         if app:
-            rows.append(("line", [("Listining: " + app, "text")]))
+            rows.append(("line", [("Listining: " + app, "value")]))
         lines = []
         if track:
             lines.append([(track, "green")])
@@ -308,7 +308,7 @@ def render(rows, pal):
             block_h = (n - 1) * LH
             x_text = PAD
             if uri:
-                size = 30
+                size = 50
                 iy = y - 10
                 cid = f"playclip{len(thumbs)}"
                 defs.append(
