@@ -3,6 +3,7 @@ import base64
 import hashlib
 import io
 import json
+import random
 import sys
 import time
 import urllib.request
@@ -62,8 +63,9 @@ HOBBIES = [
     ("Shooting", "Tactical & clay"),
     ("Coding", "Game servers & mods"),
     ("Embedded", "Microcontrollers"),
-    ("Service", "RU-AF low rank officer, 2-class (ELINT) Troops"),
 ]
+
+NAMES = ["yegorovi", "ivan", "\u30bf\u30af\u30e9\u206c", "takura", "0xdead.moscow"]
 
 PROJECTS = [
     ("DayZ", "Last-Breath"),
@@ -180,7 +182,7 @@ def clean_text(s):
 def build_rows(data, theme, image_data=None):
     music, game, custom = pick_activity(data)
     rows = [("hdr", "yegorovi@github"), ("blank",)]
-    rows.append(("kv", "Name", "DELETED"))
+    rows.append(("kv", "Name", random.choice(NAMES)))
     rows.append(("kv", "Age", str(age())))
     rows.append(("blank",))
 
@@ -302,7 +304,7 @@ def render(rows, pal):
             x_text = PAD
             if uri:
                 size = 30
-                iy = y + block_h + 10 - size
+                iy = max(y + block_h + 10 - size, y - LH + 8)
                 cid = f"playclip{len(thumbs)}"
                 defs.append(
                     f'<clipPath id="{cid}"><rect x="{PAD}" y="{iy}" '
