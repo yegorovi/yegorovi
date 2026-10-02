@@ -1,17 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="644" viewBox="0 0 760 644" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="16px">
 <rect x="0.5" y="0.5" width="759" height="643" rx="15" fill="#ffffff" stroke="#d0d7de"/>
 <defs>
+<clipPath id="playclip0"><rect x="24" y="220" width="30" height="30" rx="6"/></clipPath>
 </defs>
+<image href="data:image/png;base64,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" x="24" y="220" width="30" height="30" preserveAspectRatio="xMidYMid slice" clip-path="url(#playclip0)"/>
+<rect x="24.5" y="220.5" width="29" height="29" rx="6" fill="none" stroke="#d0d7de"/>
 <text fill="#1f2328">
 <tspan x="24" y="40"><tspan fill="#1f2328">yegorovi@github</tspan><tspan fill="#656d76"> ──────────────────────────────────────────────────────────</tspan></tspan>
 <tspan x="24" y="80"><tspan fill="#953800">  Name:</tspan><tspan fill="#656d76"> ..................</tspan><tspan fill="#0550ae"> 0xdead.moscow</tspan></tspan>
 <tspan x="24" y="100"><tspan fill="#953800">  Age:</tspan><tspan fill="#656d76"> ...................</tspan><tspan fill="#0550ae"> 21</tspan></tspan>
 <tspan x="24" y="140"><tspan fill="#1f2328">Activity</tspan><tspan fill="#656d76"> ─────────────────────────────────────────────────────────────────</tspan></tspan>
 <tspan x="24" y="160"><tspan fill="#0550ae">  🟡 Idle · desktop</tspan></tspan>
-<tspan x="24" y="180"><tspan fill="#0550ae">Яндекс Музыка</tspan></tspan>
-<tspan x="24" y="200"><tspan fill="#1a7f37">Конспект</tspan></tspan>
-<tspan x="24" y="220"><tspan fill="#1f2328">SCIRENA</tspan></tspan>
-<tspan x="24" y="240"><tspan fill="#656d76">Конспект</tspan></tspan>
+<tspan x="62" y="180"><tspan fill="#0550ae">Яндекс Музыка</tspan></tspan>
+<tspan x="62" y="200"><tspan fill="#1a7f37">Конспект</tspan></tspan>
+<tspan x="62" y="220"><tspan fill="#1f2328">SCIRENA</tspan></tspan>
+<tspan x="62" y="240"><tspan fill="#656d76">Конспект</tspan></tspan>
 <tspan x="24" y="280"><tspan fill="#1f2328">System</tspan><tspan fill="#656d76"> ───────────────────────────────────────────────────────────────────</tspan></tspan>
 <tspan x="24" y="300"><tspan fill="#953800">  CPU:</tspan><tspan fill="#656d76"> ...................</tspan><tspan fill="#0550ae"> AMD Ryzen 9 9950X3D</tspan></tspan>
 <tspan x="24" y="320"><tspan fill="#953800">  GPU:</tspan><tspan fill="#656d76"> ...................</tspan><tspan fill="#0550ae"> AMD Radeon RX 9070 XT</tspan></tspan>
