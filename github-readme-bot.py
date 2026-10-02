@@ -2,8 +2,8 @@
 """Lanyard WebSocket -> перегенерация SVG по событиям (без опроса).
 
 Использование:
-  python ws_watch.py            # слушать, при изменении присутствия писать SVG
-  python ws_watch.py --push     # + git commit/push в ветку output (для VPS)
+  python github-readme-bot.py            # слушать, при изменении присутствия писать SVG
+  python github-readme-bot.py --push     # + git commit/push в ветку output (для VPS)
 
 Протокол Lanyard: op1=hello(heartbeat_interval), op2=identify,
 op3=heartbeat, op0=t(PRESENCE_UPDATE|INIT_STATE).
@@ -204,7 +204,17 @@ async def listen():
             delay = min(delay * 2, 60)
 
 
+def _set_title():
+    """Показывать процесс как github-readme-bot.py в htop/ps."""
+    try:
+        import setproctitle
+        setproctitle.setproctitle("github-readme-bot.py")
+    except Exception:
+        pass
+
+
 def main():
+    _set_title()
     update.DIST.mkdir(exist_ok=True)
     regenerate()
     try:
