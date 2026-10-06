@@ -10,6 +10,8 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
+import ym  # noqa: E402  музыка: Яндекс.Музыка (Ynison), Lanyard — только Discord
+
 LANYARD_ID = "505825418624892939"
 HERE = Path(__file__).resolve().parent
 DIST = HERE / "dist"
@@ -141,14 +143,14 @@ def progress_cells(ts):
     return round(pct * 10)
 
 
-def fetch_activity_image(act):
-    if not act:
-        return None
-    url = (act.get("assets") or {}).get("large_image")
+def fetch_image_url(url):
+    """Скачать картинку (обложку) → data URI PNG 112×112, с дисковым кэшем."""
     if not url:
         return None
     if url.startswith("mp:"):
         url = "https://media.discordapp.net/" + url[3:]
+    if url.startswith("/"):
+        url = "https:" + url
     cache = HERE / "image_cache"
     cache.mkdir(exist_ok=True)
     blob = cache / (hashlib.md5(url.encode()).hexdigest() + ".bin")
@@ -171,6 +173,12 @@ def fetch_activity_image(act):
     return "data:image/png;base64," + base64.b64encode(raw).decode()
 
 
+def fetch_activity_image(act):
+    if not act:
+        return None
+    return fetch_image_url((act.get("assets") or {}).get("large_image"))
+
+
 def clean_text(s):
     if not s:
         return ""
@@ -179,8 +187,8 @@ def clean_text(s):
     return s.strip()
 
 
-def build_rows(data, theme, image_data=None):
-    music, game, custom = pick_activity(data)
+def build_rows(data, theme, image_data=None, music=None):
+    _, game, custom = pick_activity(data)
     rows = [("hdr", "yegorovi@github"), ("blank",)]
     rows.append(("kv", "Name", random.choice(NAMES)))
     rows.append(("kv", "Age", str(age())))
@@ -196,12 +204,12 @@ def build_rows(data, theme, image_data=None):
     where = " \u00b7 " + ", ".join(platforms) if platforms else ""
     rows.append(("line", [("  " + icon + " " + label + where, "value")]))
 
-    if music and (music.get("details") or music.get("state")
-                  or music.get("name")):
-        artist = clean_text(music.get("state"))
-        track = clean_text(music.get("details"))
-        app = clean_text(music.get("name"))
-        album = clean_text((music.get("assets") or {}).get("large_text"))
+    if music and (music.get("track") or music.get("artist")
+                  or music.get("app")):
+        app = clean_text(music.get("app"))
+        track = clean_text(music.get("track"))
+        artist = clean_text(music.get("artist"))
+        album = clean_text(music.get("album"))
         if app:
             rows.append(("blank",))
             rows.append(("line", [("Listining: " + app, "value")]))
@@ -398,16 +406,35 @@ def render(rows, pal):
     return "\n".join(svg) + "\n"
 
 
+def get_music():
+    """Музыка из Яндекс.Музыки (Ynison). Фолбэк — активность Lanyard."""
+    try:
+        return ym.fetch_now("readme")
+    except Exception as exc:
+        print(f"ym error: {exc}", file=sys.stderr)
+    try:
+        act = pick_activity(fetch())[0]
+        if act and (act.get("details") or act.get("state")):
+            return {"app": clean_text(act.get("name")),
+                    "track": clean_text(act.get("details")),
+                    "artist": clean_text(act.get("state")),
+                    "album": clean_text((act.get("assets") or {}).get("large_text")),
+                    "cover": (act.get("assets") or {}).get("large_image")}
+    except Exception:
+        pass
+    return None
+
+
 def main_once():
     data = fetch()
-    music, _, _ = pick_activity(data)
-    image_data = fetch_activity_image(music)
+    music = get_music()
+    image_data = fetch_image_url(music.get("cover")) if music else None
     DIST.mkdir(exist_ok=True)
     written = []
     for name, pal, theme in (("neofetch-dark.svg", DARK, "dark"),
                              ("neofetch-light.svg", LIGHT, "light")):
         path = DIST / name
-        path.write_text(render(build_rows(data, theme, image_data), pal),
+        path.write_text(render(build_rows(data, theme, image_data, music), pal),
                         encoding="utf-8")
         written.append(str(path))
     return written

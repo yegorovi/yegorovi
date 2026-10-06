@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Lanyard WebSocket -> перегенерация SVG по событиям (без опроса).
+"""Lanyard WS (Discord) + Яндекс.Музыка Ynison (треки) -> перегенерация SVG.
 
 Использование:
-  python github-readme-bot.py            # слушать, при изменении присутствия писать SVG
+  python github-readme-bot.py            # слушать, при изменении писать SVG
   python github-readme-bot.py --push     # + git commit/push в ветку output (для VPS)
 
-Протокол Lanyard: op1=hello(heartbeat_interval), op2=identify,
-op3=heartbeat, op0=t(PRESENCE_UPDATE|INIT_STATE).
+Источники:
+  * Discord (статус/платформы/игры/кастомный статус) — Lanyard WebSocket.
+  * Музыка (трек/исполнитель/обложка) — Яндекс.Музыка, Ynison (ym.py);
+    смена трека приходит отдельным потоком MusicMonitor.
 """
 import asyncio
 import hashlib
@@ -14,6 +16,7 @@ import json
 import re
 import subprocess
 import sys
+import threading
 import time
 import urllib.request
 from datetime import datetime
@@ -24,6 +27,7 @@ import websockets
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import update  # noqa: E402
+import ym  # noqa: E402
 
 LANYARD_ID = "505825418624892939"
 WS_URL = "wss://api.lanyard.rest/socket"
@@ -135,22 +139,30 @@ def fingerprint(data):
     return hashlib.md5(blob.encode()).hexdigest(), blob
 
 
+_regen_lock = threading.Lock()
+
+
 def regenerate():
+    if not _regen_lock.acquire(blocking=False):
+        return  # уже регенерируем — событие подождёт следующего
     try:
-        update.main_once()
-    except Exception as exc:
-        log(f"update error: {exc}")
-        return
-    log("svg regenerated")
-    if "--push" not in sys.argv or not OUT_WORKTREE.exists():
-        return
-    try:
-        publish(
-            (update.DIST / "neofetch-dark.svg").read_bytes(),
-            (update.DIST / "neofetch-light.svg").read_bytes(),
-        )
-    except Exception as exc:
-        log(f"push error: {exc}")
+        try:
+            update.main_once()
+        except Exception as exc:
+            log(f"update error: {exc}")
+            return
+        log("svg regenerated")
+        if "--push" not in sys.argv or not OUT_WORKTREE.exists():
+            return
+        try:
+            publish(
+                (update.DIST / "neofetch-dark.svg").read_bytes(),
+                (update.DIST / "neofetch-light.svg").read_bytes(),
+            )
+        except Exception as exc:
+            log(f"push error: {exc}")
+    finally:
+        _regen_lock.release()
 
 
 async def heartbeat(ws, interval_ms):
@@ -217,6 +229,9 @@ def main():
     _set_title()
     update.DIST.mkdir(exist_ok=True)
     regenerate()
+    # смена трека в Яндекс.Музыке → регенерация (Lanyard об этом не знает)
+    ym.MusicMonitor(lambda info: (log(f"ymusic -> {info}"), regenerate()),
+                    seed="readme", title="profile-readme").start()
     try:
         asyncio.run(listen())
     except KeyboardInterrupt:

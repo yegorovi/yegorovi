@@ -2,3 +2,4 @@ dist/
 image_cache/
 *.log
 __pycache__/
+ym_config.json
