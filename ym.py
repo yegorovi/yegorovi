@@ -102,30 +102,66 @@ def fetch_now(seed="fetch"):
 
 
 class MusicMonitor:
-    """Фоновый поток с долгоживущим Ynison-соединением."""
+    """Фоновый поток с долгоживущим Ynison-соединением.
 
-    def __init__(self, on_change, seed, title=None):
+    on_change(info|None) зовётся на смену трека / паузу / воспроизведение.
+    Сторож (отдельный поток): если ws молчит дольше silent_restart секунд —
+    обрыв без ошибки, соединение рвётся через disconnect() и цикл сам
+    переподключается (иначе connect() виснет в мёртвом recv навсегда).
+    """
+
+    def __init__(self, on_change, seed, title=None, silent_restart=60, log=None):
         self.on_change = on_change
         self.seed = seed
         self.title = title or seed
+        self.silent_restart = silent_restart
+        self.log = log or (lambda msg: print(msg, flush=True))
         self._last = "<init>"
         self._stop = False
+        self._client = None
+        self._last_msg = 0.0
         self.thread = None
+        self.watchdog = None
 
     def start(self):
         self.thread = threading.Thread(
             target=self._run, name=f"ym-{self.seed}", daemon=True)
         self.thread.start()
+        self.watchdog = threading.Thread(
+            target=self._watch, name=f"ym-{self.seed}-watch", daemon=True)
+        self.watchdog.start()
         return self
 
     def stop(self):
         self._stop = True
+        c = self._client
+        if c is not None:
+            try:
+                c.disconnect()
+            except Exception:
+                pass
+
+    def _watch(self):
+        while not self._stop:
+            time.sleep(5)
+            c = self._client
+            if c is None:
+                continue
+            silent = time.time() - self._last_msg
+            if silent > self.silent_restart:
+                self.log(f"ym[{self.seed}]: тишина {int(silent)}с -> рестарт ws")
+                self._last_msg = time.time()  # не спамить, пока идёт реконнект
+                try:
+                    c.disconnect()
+                except Exception:
+                    pass
 
     def _run(self):
         from yandex_music.ynison import YnisonClient, messages
 
         delay = 3
         while not self._stop:
+            ok = False
             try:
                 client = YnisonClient(
                     _load_token(),
@@ -133,9 +169,12 @@ class MusicMonitor:
                         seed=f"ym-{self.seed}"),
                     device_title=self.title,
                 )
+                self._client = client
+                self._last_msg = time.time()
 
                 @client.on_state
                 def _state(state):
+                    self._last_msg = time.time()
                     try:
                         info = _parse(state)
                     except Exception:
@@ -149,9 +188,20 @@ class MusicMonitor:
                         pass
 
                 client.connect()  # блокируется до disconnect
-                delay = 3
-            except Exception:
+                ok = True
+                if not self._stop:
+                    self.log(f"ym[{self.seed}]: ws закрыт -> переподключение")
+            except Exception as e:
                 if self._stop:
                     return
+                self.log(f"ym[{self.seed}]: {e} -> повтор через {delay}с")
+            finally:
+                self._client = None
+            if self._stop:
+                return
+            if ok:
+                delay = 3
+                time.sleep(1)
+            else:
                 time.sleep(delay)
                 delay = min(delay * 2, 60)
