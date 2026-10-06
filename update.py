@@ -189,12 +189,7 @@ def clean_text(s):
 
 def build_rows(data, theme, image_data=None, music=None):
     _, game, custom = pick_activity(data)
-    rows = [("hdr", "yegorovi@github"), ("blank",)]
-    rows.append(("kv", "Name", random.choice(NAMES)))
-    rows.append(("kv", "Age", str(age())))
-    rows.append(("blank",))
-
-    rows.append(("sec_r", "Discord Activity", "yegorovi"))
+    rows = [("hdr", "yegorovi@github")]
     icon, label = STATUS.get(data.get("discord_status", "offline"), STATUS["offline"])
     platforms = [name for key, name in (
         ("active_on_discord_desktop", "desktop"),
@@ -203,13 +198,21 @@ def build_rows(data, theme, image_data=None, music=None):
     ) if data.get(key)]
     where = " \u00b7 " + ", ".join(platforms) if platforms else ""
     rows.append(("line", [("  " + icon + " " + label + where, "value")]))
+    rows.append(("blank",))
+    rows.append(("kv", "Name", random.choice(NAMES)))
+    rows.append(("kv", "Age", str(age())))
+    rows.append(("blank",))
 
+    has_activity = False
     if music and (music.get("track") or music.get("artist")
                   or music.get("app")):
         app = clean_text(music.get("app"))
         track = clean_text(music.get("track"))
         artist = clean_text(music.get("artist"))
         album = clean_text(music.get("album"))
+        if not has_activity:
+            rows.append(("sec_r", "Activity", "yegorovi"))
+            has_activity = True
         if app:
             rows.append(("blank",))
             rows.append(("line", [("Listining: " + app, "value")]))
@@ -225,6 +228,9 @@ def build_rows(data, theme, image_data=None, music=None):
         rows.append(("player", image_data, lines))
 
     if game and game.get("name"):
+        if not has_activity:
+            rows.append(("sec_r", "Activity", "yegorovi"))
+            has_activity = True
         segs = [("  ▶ ", "key"), (game["name"], "value")]
         if game.get("details"):
             segs.append((" \u2014 " + game["details"], "value"))
@@ -233,6 +239,9 @@ def build_rows(data, theme, image_data=None, music=None):
     if custom:
         ctext = custom.get("state") or custom.get("details")
         if ctext:
+            if not has_activity:
+                rows.append(("sec_r", "Activity", "yegorovi"))
+                has_activity = True
             cemoji = (custom.get("emoji") or {}).get("name") or ""
             prefix = f"  {cemoji} " if cemoji else "  "
             rows.append(("line", [(prefix, "key"), (ctext, "value")]))
