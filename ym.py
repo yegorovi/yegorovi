@@ -191,7 +191,8 @@ class MusicMonitor:
         self._stop = False
         self._client = None
         self._last_msg = 0.0
-        self._idle_streak = 0   # рестартов подряд без единого состояния
+        self._idle_streak = 0   # рестартов подряд без состояния «играет»
+        self._playing = False   # последний кадр: плеер играл (ожидаем кадры)
         self.thread = None
         self.watchdog = None
 
@@ -220,13 +221,17 @@ class MusicMonitor:
             if c is None:
                 continue
             silent = time.time() - self._last_msg
-            # плеер неактивен (ни одного состояния с момента подключения) —
-            # переподключения вхолостую ни к чему не ведут, порог растёт:
-            # 60 -> 120 -> 240 -> 300... Как только придёт состояние, сброс.
-            thr = min(self.silent_restart * (2 ** min(self._idle_streak, 10)),
-                      300)
+            # играет (кадры шли ~каждые 3с) -> молчание >60с = обрыв, рвём.
+            # пауза/ничего -> тишина нормальна, порог растёт
+            # 60 -> 120 -> 240 -> 300, чтобы не переподключаться вхолостую.
+            if self._playing:
+                thr = self.silent_restart
+            else:
+                thr = min(self.silent_restart * (2 ** min(self._idle_streak, 10)),
+                          300)
             if silent > thr:
                 self._idle_streak += 1
+                self._playing = False
                 self.log(f"ym[{self.seed}]: тишина {int(silent)}с "
                          f"(порог {thr}с) -> рестарт ws")
                 self._last_msg = time.time()  # не спамить, пока идёт реконнект
@@ -254,11 +259,13 @@ class MusicMonitor:
                 @client.on_state
                 def _state(state):
                     self._last_msg = time.time()
-                    self._idle_streak = 0
                     try:
                         info = _parse(state)
                     except Exception:
                         return
+                    self._playing = info is not None
+                    if self._playing:
+                        self._idle_streak = 0
                     if info == self._last:
                         return
                     self._last = info
