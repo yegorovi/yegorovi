@@ -92,12 +92,23 @@ def _parse(state):
 
 
 def fetch_now(seed="fetch"):
-    """Разовый снимок: info | None."""
+    """Разовый снимок: info | None.
+
+    None также в случае, когда плеер неактивен: ws поднимается, но кадр
+    состояния не приходит (YnisonTimeoutError «начального состояния») —
+    это не ошибка, а «ничего не играет».
+    """
+    from yandex_music.exceptions import YnisonTimeoutError
     from yandex_music.ynison import messages, simple
 
     dev = messages.generate_device_id(
         seed=f"ym-{seed}:{socket.gethostname()}")
-    state = simple.get_state(_load_token(), device_id=dev)
+    try:
+        state = simple.get_state(_load_token(), device_id=dev)
+    except YnisonTimeoutError as e:
+        if "начального состояния" in str(e):
+            return None
+        raise
     return _parse(state)
 
 
@@ -120,6 +131,7 @@ class MusicMonitor:
         self._stop = False
         self._client = None
         self._last_msg = 0.0
+        self._idle_streak = 0   # рестартов подряд без единого состояния
         self.thread = None
         self.watchdog = None
 
@@ -148,8 +160,15 @@ class MusicMonitor:
             if c is None:
                 continue
             silent = time.time() - self._last_msg
-            if silent > self.silent_restart:
-                self.log(f"ym[{self.seed}]: тишина {int(silent)}с -> рестарт ws")
+            # плеер неактивен (ни одного состояния с момента подключения) —
+            # переподключения вхолостую ни к чему не ведут, порог растёт:
+            # 60 -> 120 -> 240 -> 300... Как только придёт состояние, сброс.
+            thr = min(self.silent_restart * (2 ** min(self._idle_streak, 10)),
+                      300)
+            if silent > thr:
+                self._idle_streak += 1
+                self.log(f"ym[{self.seed}]: тишина {int(silent)}с "
+                         f"(порог {thr}с) -> рестарт ws")
                 self._last_msg = time.time()  # не спамить, пока идёт реконнект
                 try:
                     c.disconnect()
@@ -175,6 +194,7 @@ class MusicMonitor:
                 @client.on_state
                 def _state(state):
                     self._last_msg = time.time()
+                    self._idle_streak = 0
                     try:
                         info = _parse(state)
                     except Exception:
