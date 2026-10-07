@@ -26,6 +26,18 @@ APP_NAME = "Яндекс Музыка"
 _token = None
 _client = None
 _cache = {}  # track_id -> (artist, album) успешные ответы
+_src_cache = {}  # (etype, entity_id) -> (заголовок, время кэша)
+
+_SRC_LABELS = {
+    1: "Исполнитель",   # ARTIST
+    2: "Плейлист",      # PLAYLIST
+    3: "Альбом",        # ALBUM
+    4: "Радио",         # RADIO
+    5: "Подборка",      # VARIOUS
+    6: "Микс",          # GENERATIVE
+    7: "FM-радио",      # FM_RADIO
+    9: "Локальные треки",
+}
 
 
 def _load_token():
@@ -68,6 +80,50 @@ def _resolve(pid):
     return artist, album
 
 
+def _queue_title(etype, eid):
+    """Заголовок источника очереди (REST, кэш; ошибки — на 5 минут)."""
+    key = (etype, eid)
+    hit = _src_cache.get(key)
+    if hit is not None:
+        title, ts = hit
+        if title or time.time() - ts < 300:
+            return title
+    title = ""
+    try:
+        global _client
+        if _client is None:
+            from yandex_music import Client
+            _client = Client(_load_token())
+        if etype == 2:
+            obj = _client.playlist(eid)
+            title = obj.title if obj else ""
+        elif etype == 3:
+            obj = _client.album(eid)
+            title = obj.title if obj else ""
+        elif etype == 1:
+            obj = _client.artist(eid)
+            title = obj.name if obj else ""
+    except Exception:
+        title = ""
+    _src_cache[key] = (title, time.time())
+    return title
+
+
+def _queue_src(q):
+    """Источник очереди -> 'Плейлист: Название' | 'Радио' | None."""
+    if q is None or not q.entity_id:
+        return None
+    try:
+        et = int(q.entity_type or 0)
+    except Exception:
+        return None
+    label = _SRC_LABELS.get(et, "Источник")
+    if et in (1, 2, 3):
+        title = _queue_title(et, q.entity_id)
+        return f"{label}: {title}" if title else f"{label}: —"
+    return label
+
+
 def _parse(state):
     """Состояние Ynison → info | None (ничего не играет)."""
     from yandex_music.ynison import utils
@@ -81,7 +137,7 @@ def _parse(state):
         return None
     pid = f"{pl.playable_id}:{pl.album_id_optional or ''}"
     artist, album = _resolve(pid)
-    return {
+    info = {
         "app": APP_NAME,
         "id": pid,
         "track": pl.title or "",
@@ -89,6 +145,10 @@ def _parse(state):
         "album": album,
         "cover": cover_url(pl.cover_url_optional),
     }
+    src = _queue_src(getattr(ps, "player_queue", None))
+    if src:
+        info["src"] = src
+    return info
 
 
 def fetch_now(seed="fetch"):
