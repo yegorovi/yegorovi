@@ -1,4 +1,21 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/yegorovi/yegorovi/output/neofetch-008b7153-dark.svg">
-  <img alt="neofetch" src="https://raw.githubusercontent.com/yegorovi/yegorovi/output/neofetch-008b7153-light.svg" width="100%">
-</picture>
+# Исходники github-readme-bot
+
+Здесь лежат исходники бота, который рисует neofetch-карточку для моего профиля GitHub и обновляет её сам при каждом изменении статуса Discord. Профильный README живёт в ветке main, готовые картинки в ветке output, а в этой ветке только код.
+
+## Как работает
+
+Бот держит WebSocket к Lanyard и слушает события INIT_STATE и PRESENCE_UPDATE. Как только что-то изменилось (игра, музыка, кастомный статус), он заново рисует две карточки, тёмную и светлую, кладёт их в ветку output именем с хешем содержимого и переписывает README в ветке main на свежие ссылки. Имя файла каждый раз новое не просто так: raw.githubusercontent кэширует по адресу 5 минут, и без нового имени профиль показывает старую картинку.
+
+Музыка для карточки приходит из ym.py - это обёртка над Яндекс.Музыкой через протокол Ynison, он видит плеер на телефоне в реальном времени. Если Яндекс молчит, берётся активность Discord. Лог работы - ws.log рядом со скриптом, сервис на VPS называется profile_readme.
+
+## Файлы
+
+github-readme-bot.py - сам бот: WebSocket, рендер SVG, пуш в git
+update.py - нарисовать карточки руками одной командой
+ym.py - музыка Яндекс.Музыки, нужна боту для трека
+
+## Запуск
+
+Бот работает на VPS под systemd, руками его запускать не нужно. Для проверки на своей машине: python update.py один раз нарисует обе темы в папку dist, а github-readme-bot.py поднимется и будет обновлять карточку по событиям. Токен Яндекс.Музыки лежит в ym_config.json рядом со скриптом, в репо его нет, он секрет.
+
+Автор: 0xdead.moscow
