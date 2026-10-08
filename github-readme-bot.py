@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Lanyard WS (Discord) + Яндекс.Музыка Ynison (треки) -> перегенерация SVG.
+"""Lanyard WS Discord + Яндекс.Музыка Ynison треки -> перегенерация SVG.
 
 Использование:
-  python github-readme-bot.py            # слушать, при изменении писать SVG
-  python github-readme-bot.py --push     # + git commit/push в ветку output (для VPS)
+  python github-readme-bot.py             слушать, при изменении писать SVG
+  python github-readme-bot.py --push      + git commit/push в ветку output для VPS
 
 Источники:
-  * Discord (статус/платформы/игры/кастомный статус) — Lanyard WebSocket.
-  * Музыка (трек/исполнитель/обложка) — Яндекс.Музыка, Ynison (ym.py);
+  * Discord (статус/платформы/игры/кастомный статус)  Lanyard WebSocket.
+  * Музыка (трек/исполнитель/обложка)  Яндекс.Музыка, Ynison (ym.py);
     смена трека приходит отдельным потоком MusicMonitor.
 """
 import asyncio
@@ -34,7 +34,7 @@ WS_URL = "wss://api.lanyard.rest/socket"
 OUT_WORKTREE = Path("/opt/profile_out")
 README = HERE / "README.md"
 RAW_BASE = "https://raw.githubusercontent.com/yegorovi/yegorovi/output/"
-_last_fp = None  # отпечаток активности: регенерируем только при её смене
+_last_fp = None
 
 
 def log(msg):
@@ -75,7 +75,7 @@ def publish(dark: bytes, light: bytes):
         names["neofetch-light.svg"]: light,
     }
 
-    # --- ветка output: один набор файлов с актуальным версионным именем
+    # ветка output: один набор файлов с актуальным версионным именем
     changed = False
     for f in OUT_WORKTREE.glob("neofetch*.svg"):
         if f.name not in payload:
@@ -91,7 +91,7 @@ def publish(dark: bytes, light: bytes):
         _git(OUT_WORKTREE, "push", "-q", "origin", "output")
         log(f"pushed output ({ver})")
 
-    # --- main: README ссылается на свежие имена
+    # main: README ссылается на свежие имена
     text = README.read_text(encoding="utf-8")
     new_text = re.sub(
         r"neofetch(?:-[0-9a-f]{8})?-(dark|light)\.svg",
@@ -117,7 +117,6 @@ def fingerprint(data):
         assets = act.get("assets") or {}
         image = assets.get("large_image") or ""
         if image:
-            # CDN-подпись (ex=..&hm=..) ротируется каждые секунды — режем
             image = image.split("?")[0]
         acts.append({
             "type": act.get("type"),
@@ -229,7 +228,6 @@ def main():
     _set_title()
     update.DIST.mkdir(exist_ok=True)
     regenerate()
-    # смена трека в Яндекс.Музыке → регенерация (Lanyard об этом не знает)
     ym.MusicMonitor(lambda info: (log(f"ymusic -> {info}"), regenerate()),
                     seed="readme", title="profile-readme").start()
     try:
