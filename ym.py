@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Монитор «сейчас играет» Яндекс.Музыки через Ynison (ws-протокол плеера).
+"""Монитор «сейчас играет» Яндекс.Музыки через Ynison ws-протокол плеера.
 
 Два способа:
-    fetch_now(seed)             — разовый снимок (открывает ws, читает, закрывает)
-    MusicMonitor(on_change, seed) — долгоживущее ws в фоновом потоке;
+    fetch_now(seed)             - разовый снимок открывает ws, читает, закрывае
+    MusicMonitor(on_change, seed) - долгоживущее ws в фоновом потоке;
                                     on_change(info|None) при смене трека/паузы
 
 info (dict) | None (пауза, стоп, нет устройства):
     {"app": "Яндекс Музыка", "id": "95341995:19422901", "track": "Спутник 420",
      "artist": "OM.", "album": "BACKGROUND", "cover": "https://avatars..."}
 
-У каждого вызова свой device_id (seed) — иначе Ynison вытесняет соседа.
+У каждого вызова свой device_id (seed) - иначе Ynison вытесняет соседа.
 Токен: ym_config.json рядом с файлом или /opt/ym_config.json.
 """
 import json
@@ -25,8 +25,8 @@ APP_NAME = "Яндекс Музыка"
 
 _token = None
 _client = None
-_cache = {}  # track_id -> (artist, album) успешные ответы
-_src_cache = {}  # (etype, entity_id) -> (заголовок, время кэша)
+_cache = {}  # track_id > (artist, album) успешные ответы
+_src_cache = {}  # (etype, entity_id) > (заголовок, время кэша)
 
 _SRC_LABELS = {
     1: "Исполнитель",   # ARTIST
@@ -81,7 +81,7 @@ def _resolve(pid):
 
 
 def _queue_title(etype, eid):
-    """Заголовок источника очереди (REST, кэш; ошибки — на 5 минут)."""
+    """Заголовок источника очереди (REST, кэш; ошибки - на 5 минут)."""
     key = (etype, eid)
     hit = _src_cache.get(key)
     if hit is not None:
@@ -155,7 +155,7 @@ def fetch_now(seed="fetch"):
     """Разовый снимок: info | None.
 
     None также в случае, когда плеер неактивен: ws поднимается, но кадр
-    состояния не приходит (YnisonTimeoutError «начального состояния») —
+    состояния не приходит (YnisonTimeoutError «начального состояния») -
     это не ошибка, а «ничего не играет».
     """
     from yandex_music.exceptions import YnisonTimeoutError
@@ -221,7 +221,7 @@ class MusicMonitor:
             if c is None:
                 continue
             silent = time.time() - self._last_msg
-            # играет (кадры шли ~каждые 3с) -> молчание >60с = обрыв, рвём.
+            # играет (кадры шли ~каждые 3с) > молчание >60с = обрыв, рвём.
             # пауза/ничего -> тишина нормальна, порог растёт
             # 60 -> 120 -> 240 -> 300, чтобы не переподключаться вхолостую.
             if self._playing:
@@ -234,7 +234,7 @@ class MusicMonitor:
                 self._playing = False
                 self.log(f"ym[{self.seed}]: тишина {int(silent)}с "
                          f"(порог {thr}с) -> рестарт ws")
-                self._last_msg = time.time()  # не спамить, пока идёт реконнект
+                self._last_msg = time.time()
                 try:
                     c.disconnect()
                 except Exception:
@@ -277,11 +277,11 @@ class MusicMonitor:
                 client.connect()  # блокируется до disconnect
                 ok = True
                 if not self._stop:
-                    self.log(f"ym[{self.seed}]: ws закрыт -> переподключение")
+                    self.log(f"ym[{self.seed}]: ws закрыт > переподключение")
             except Exception as e:
                 if self._stop:
                     return
-                self.log(f"ym[{self.seed}]: {e} -> повтор через {delay}с")
+                self.log(f"ym[{self.seed}]: {e} > повтор через {delay}с")
             finally:
                 self._client = None
             if self._stop:
