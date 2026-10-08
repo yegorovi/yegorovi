@@ -10,7 +10,7 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
-import ym  # noqa: E402  музыка: Яндекс.Музыка (Ynison), Lanyard — только Discord
+import ym  # noqa: E402
 
 LANYARD_ID = "505825418624892939"
 HERE = Path(__file__).resolve().parent
@@ -144,7 +144,7 @@ def progress_cells(ts):
 
 
 def fetch_image_url(url):
-    """Скачать картинку (обложку) → data URI PNG 112×112, с дисковым кэшем."""
+    """Скачать картинку (обложку) > data URI PNG 112×112, с дисковым кэшем."""
     if not url:
         return None
     if url.startswith("mp:"):
@@ -416,7 +416,7 @@ def render(rows, pal):
 
 
 def get_music():
-    """Музыка из Яндекс.Музыки (Ynison). Фолбэк — активность Lanyard."""
+    """Музыка из Яндекс.Музыки Ynison - фолбэк активность Lanyard."""
     try:
         return ym.fetch_now("readme")
     except Exception as exc:
