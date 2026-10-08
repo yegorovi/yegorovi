@@ -143,7 +143,7 @@ _regen_lock = threading.Lock()
 
 def regenerate():
     if not _regen_lock.acquire(blocking=False):
-        return  # уже регенерируем — событие подождёт следующего
+        return
     try:
         try:
             update.main_once()
