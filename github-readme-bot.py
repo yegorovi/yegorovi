@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lanyard WS Discord + Яндекс.Музыка Ynison треки -> перегенерация SVG.
+"""Lanyard WS Discord + Яндекс.Музыка Ynison треки > перегенерация SVG.
 
 Использование:
   python github-readme-bot.py             слушать, при изменении писать SVG
@@ -62,7 +62,7 @@ def publish(dark: bytes, light: bytes):
     """Версионированные имена в output + переписанный README в main.
 
     raw.githubusercontent кэширует URL 5 минут (max-age=300) и игнорирует
-    query-string в ключе кэша, поэтому обход — каждый раз НОВОЕ имя файла.
+    query-string в ключе кэша, поэтому обход каждый раз НОВОЕ имя файла.
     HTML профиля github.com подхватывает README за ~1 секунду.
     """
     ver = hashlib.md5(dark + light).hexdigest()[:8]
@@ -107,9 +107,9 @@ def publish(dark: bytes, light: bytes):
 
 
 def fingerprint(data):
-    """Отпечаток того, что видно на карточке: статус + активности.
+    """Отпечаток того, что видно на карточке статус + активности.
 
-    presence шлётся каждые ~3-10 с даже без изменений — regen/push делаем
+    presence шлётся каждые ~3-10 с даже без изменений regen/push делаем
     только когда трек/игра/статус реально сменились (появился/пропал).
     """
     acts = []
