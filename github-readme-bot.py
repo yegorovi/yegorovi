@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lanyard WS (Discord) + Яндекс.Музыка Ynison (треки) -> перегенерация SVG.
+"""Lanyard WS (Discord) + Яндекс.Музыка Ynison (треки) >> перегенерация SVG.
 
 Использование:
   python github-readme-bot.py            # слушать, при изменении писать SVG
@@ -90,11 +90,32 @@ def publish(dark: bytes, light: bytes):
 		names["neofetch-dark.svg"]: dark,
 		names["neofetch-light.svg"]: light,
 	}
+	# raw.githubusercontent кэширует URL 5 минут и игнорирует
+	# query-string, поэтому имя файла каждый раз новое; старые
+	# удалять нельзя - закэшированные README (github.com и raw)
+	# ссылаются на прежние имена и дают битую картинку.
+	# Оставляем имена из текущего README и его прошлой версии
+	# (два поколения назад переживают любой разумный кэш),
+	# остальные старые вычищаем, чтобы ветка не разрасталась.
+	# remote main может уехать вперёд (правки в вебе) - сначала
+	# синхронизация (заодно откатывает неудачный прошлый push):
+	_git(HERE, "fetch", "-q", "origin", "main")
+	_git(HERE, "reset", "-q", "--hard", "origin/main")
+	text = README.read_text(encoding="utf-8")
+	keep = set(re.findall(
+		r"neofetch(?:-[0-9a-f]{8})?-(?:dark|light)\.svg", text))
+	prev = subprocess.run(
+		["git", "-C", str(HERE), "show", "HEAD~1:README.md"],
+		capture_output=True, text=True)
+	if prev.returncode == 0:
+		keep |= set(re.findall(
+			r"neofetch(?:-[0-9a-f]{8})?-(?:dark|light)\.svg",
+			prev.stdout))
 
-	# --- ветка output: один набор файлов с актуальным версионным именем
+	# ветка output: пишем актуальные имена, чистим только лишние
 	changed = False
 	for f in OUT_WORKTREE.glob("neofetch*.svg"):
-		if f.name not in payload:
+		if f.name not in payload and f.name not in keep:
 			f.unlink()
 			changed = True
 	for name, data in payload.items():
@@ -118,15 +139,7 @@ def publish(dark: bytes, light: bytes):
 			return
 		log(f"pushed output ({ver})")
 
-	# --- main: README ссылается на свежие имена
-	# remote main может уехать вперёд (правки в вебе) - перед правкой
-	# локаль синхронизируем, иначе push отвергается (non-fast-forward),
-	# README навсегда остаётся со старым именем файла = битая картинка.
-	# reset также откатывает наш неудачно запушенный коммит, чтобы
-	# следующая регенерация повторила push, а не посчитала "всё готово".
-	_git(HERE, "fetch", "-q", "origin", "main")
-	_git(HERE, "reset", "-q", "--hard", "origin/main")
-	text = README.read_text(encoding="utf-8")
+	# main: README ссылается на свежие имена
 	new_text = re.sub(
 		r"neofetch(?:-[0-9a-f]{8})?-(dark|light)\.svg",
 		lambda m: names[f"neofetch-{m.group(1)}.svg"],
@@ -138,7 +151,7 @@ def publish(dark: bytes, light: bytes):
 		staged = subprocess.run(
 			["git", "-C", str(HERE), "diff", "--cached", "--quiet"])
 		if staged.returncode != 0:
-			_git(HERE, "commit", "-q", "-m", f"readme {ver}")
+			_git(HERE, "commit", "-q", "-m", "изменение статуса карточки")
 			if _push(HERE, "main"):
 				log(f"pushed readme ({ver})")
 			else:
@@ -181,28 +194,44 @@ def fingerprint(data):
 
 
 _regen_lock = threading.Lock()
+_regen_pending = threading.Event()  # событие пришло во время регенерации
 
 
 def regenerate():
-	"""Перегенеривает SVG и публикует (под замком, второй зов ждёт)."""
+	"""Перегенерирует SVG и публикует (под замком).
+
+    Если событие пришло, пока идёт регенерация, - оно НЕ теряется:
+    помечается в _regen_pending и отрабатывает повтором сразу после.
+    Раньше такое событие выкидывалось (lock без ожидания), а fingerprint
+    уже был запомнен - карточка обновлялась только со следующим событием
+    ("иногда с большой задержкой меняет").
+    """
 	if not _regen_lock.acquire(blocking=False):
-		return  # уже регенерируем - событие подождёт следующего
+		_regen_pending.set()
+		return
 	try:
-		try:
-			update.main_once()
-		except Exception as exc:
-			log(f"update error: {exc}")
-			return
-		log("svg regenerated")
-		if "--push" not in sys.argv or not OUT_WORKTREE.exists():
-			return
-		try:
-			publish(
-				(update.DIST / "neofetch-dark.svg").read_bytes(),
-				(update.DIST / "neofetch-light.svg").read_bytes(),
-			)
-		except Exception as exc:
-			log(f"push error: {exc}")
+		while True:
+			_regen_pending.clear()
+			try:
+				update.main_once()
+			except Exception as exc:
+				log(f"update error: {exc}")
+				return
+			log("svg regenerated")
+			if "--push" not in sys.argv or not OUT_WORKTREE.exists():
+				if not _regen_pending.is_set():
+					return
+				continue
+			try:
+				publish(
+					(update.DIST / "neofetch-dark.svg").read_bytes(),
+					(update.DIST / "neofetch-light.svg").read_bytes(),
+				)
+			except Exception as exc:
+				log(f"push error: {exc}")
+				return
+			if not _regen_pending.is_set():
+				return
 	finally:
 		_regen_lock.release()
 
@@ -274,7 +303,7 @@ def main():
 	_set_title()
 	update.DIST.mkdir(exist_ok=True)
 	regenerate()
-	# смена трека в Яндекс.Музыке → регенерация (Lanyard об этом не знает)
+	# смена трека в Яндекс.Музыке >> регенерация (Lanyard об этом не знает)
 	ym.MusicMonitor(lambda info: (log(f"ymusic -> {info}"), regenerate()),
 					seed="readme", title="profile-readme").start()
 	try:
