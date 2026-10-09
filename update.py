@@ -159,7 +159,7 @@ def progress_cells(ts):
 
 
 def fetch_image_url(url):
-	"""Скачать картинку (обложку) → data URI PNG 112×112, с дисковым кэшем."""
+	"""Скачать картинку (обложку) >> data URI PNG 112×112, с дисковым кэшем."""
 	if not url:
 		return None
 	if url.startswith("mp:"):
@@ -437,10 +437,13 @@ def render(rows, pal):
 
 def get_music():
 	"""Музыка из Яндекс.Музыки (Ynison). Фолбэк - активность Lanyard."""
+	info = None
 	try:
-		return ym.fetch_now("readme")
+		info = ym.fetch_now("readme")
 	except Exception as exc:
 		print(f"ym error: {exc}", file=sys.stderr)
+	if info:
+		return info
 	try:
 		act = pick_activity(fetch())[0]
 		if act and (act.get("details") or act.get("state")):
