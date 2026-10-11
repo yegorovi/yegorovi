@@ -38,7 +38,7 @@ _last_fp = None  # отпечаток активности: регенериру
 
 
 def log(msg):
-	"""Печатает строку со временем в stdout и в ws.log."""
+	"""Печатает строку со временем."""
 	line = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} {msg}"
 	print(line, flush=True)
 	try:
@@ -54,7 +54,7 @@ def _git(worktree, *args):
 
 
 def _has_changes(worktree):
-	"""Ставит всё в индекс и проверяет, есть ли что коммитить."""
+	"""Есть ли что коммитить."""
 	subprocess.run(["git", "-C", str(worktree), "add", "-A"], check=True)
 	r = subprocess.run(
 		["git", "-C", str(worktree), "diff", "--cached", "--quiet"])
@@ -62,7 +62,7 @@ def _has_changes(worktree):
 
 
 def _push(worktree, branch, tries=3):
-	"""Пуш с повторами: tries попыток с растущей паузой, итог True/False."""
+	"""Пуш с повторами."""
 	for attempt in range(1, tries + 1):
 		try:
 			_git(worktree, "push", "-q", "origin", branch)
@@ -75,12 +75,7 @@ def _push(worktree, branch, tries=3):
 
 
 def publish(dark: bytes, light: bytes):
-	"""Версионированные имена в output + переписанный README в main.
-
-    raw.githubusercontent кэширует URL 5 минут (max-age=300) и игнорирует
-    query-string в ключе кэша, поэтому обход - каждый раз НОВОЕ имя файла.
-    HTML профиля github.com подхватывает README за ~1 секунду.
-    """
+	"""Публикует SVG и README."""
 	ver = hashlib.md5(dark + light).hexdigest()[:8]
 	names = {
 		"neofetch-dark.svg": f"neofetch-{ver}-dark.svg",
@@ -161,11 +156,7 @@ def publish(dark: bytes, light: bytes):
 
 
 def fingerprint(data):
-	"""Отпечаток того, что видно на карточке: статус + активности.
-
-    presence шлётся каждые ~3-10 с даже без изменений - regen/push делаем
-    только когда трек/игра/статус реально сменились (появился/пропал).
-    """
+	"""Отпечаток карточки."""
 	acts = []
 	for act in data.get("activities") or []:
 		assets = act.get("assets") or {}
@@ -198,14 +189,7 @@ _regen_pending = threading.Event()  # событие пришло во врем�
 
 
 def regenerate():
-	"""Перегенерирует SVG и публикует (под замком).
-
-    Если событие пришло, пока идёт регенерация, - оно НЕ теряется:
-    помечается в _regen_pending и отрабатывает повтором сразу после.
-    Раньше такое событие выкидывалось (lock без ожидания), а fingerprint
-    уже был запомнен - карточка обновлялась только со следующим событием
-    ("иногда с большой задержкой меняет").
-    """
+	"""Перегенерирует SVG."""
 	if not _regen_lock.acquire(blocking=False):
 		_regen_pending.set()
 		return
@@ -237,14 +221,14 @@ def regenerate():
 
 
 async def heartbeat(ws, interval_ms):
-	"""Шлёт сердцебиение в websocket раз в interval_ms."""
+	"""Heartbeat в websocket."""
 	while True:
 		await asyncio.sleep(interval_ms / 1000)
 		await ws.send(json.dumps({"op": 3, "d": None}))
 
 
 async def listen():
-	"""Держит websocket: события активности и реконнект с бэкоффом."""
+	"""Держит websocket."""
 	global _last_fp
 	delay = 1
 	while True:
@@ -290,7 +274,7 @@ async def listen():
 
 
 def _set_title():
-	"""Показывать процесс как github-readme-bot.py в htop/ps."""
+	"""Имя процесса для ps."""
 	try:
 		import setproctitle
 		setproctitle.setproctitle("github-readme-bot.py")
@@ -299,7 +283,7 @@ def _set_title():
 
 
 def main():
-	"""Стартует монитор музыки и слушает Lanyard до Ctrl+C."""
+	"""Старт мониторов и слушатель."""
 	_set_title()
 	update.DIST.mkdir(exist_ok=True)
 	regenerate()
