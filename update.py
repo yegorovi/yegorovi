@@ -53,7 +53,7 @@ STATUS = {
 SYSTEM = [
 	("CPU", "AMD Ryzen 9 9950X3D"),
 	("GPU", "AMD Radeon RX 9070 XT"),
-	("RAM", "64 GB"),
+	("RAM", "32 GB"),
 ]
 
 LANGUAGES = [
@@ -89,13 +89,13 @@ def esc(s):
 
 
 def age():
-	"""Возраст по дате рождения (сегодняшний день ещё не считаем)."""
+	"""Возраст по дате рождения."""
 	today = date.today()
 	return today.year - BIRTH.year - ((today.month, today.day) < (BIRTH.month, BIRTH.day))
 
 
 def trim(segs, limit):
-	"""Обрезает сегменты по лимиту символов, конец - многоточие."""
+	"""Обрезает строки по лимиту."""
 	total = sum(len(t) for t, _ in segs)
 	if total <= limit:
 		return segs
@@ -128,7 +128,7 @@ def fetch():
 
 
 def pick_activity(data):
-	"""Достаёт из активностей первые: музыку, игру и кастомный статус."""
+	"""Музыка, игра и кастом из активностей."""
 	music = game = custom = None
 	for act in data.get("activities") or []:
 		kind = act.get("type")
@@ -146,7 +146,7 @@ def pick_activity(data):
 
 
 def progress_cells(ts):
-	"""Прогресс трека в клетках 0-10, без таймингов - None."""
+	"""Прогресс трека в клетках."""
 	if not ts or not ts.get("start") or not ts.get("end"):
 		return None
 	span = ts["end"] - ts["start"]
@@ -159,7 +159,7 @@ def progress_cells(ts):
 
 
 def fetch_image_url(url):
-	"""Скачать картинку (обложку) >> data URI PNG 112×112, с дисковым кэшем."""
+	"""Картинка >> data URI."""
 	if not url:
 		return None
 	if url.startswith("mp:"):
@@ -189,14 +189,14 @@ def fetch_image_url(url):
 
 
 def fetch_activity_image(act):
-	"""Обложка активности (large_image), либо None."""
+	"""Обложка активности."""
 	if not act:
 		return None
 	return fetch_image_url((act.get("assets") or {}).get("large_image"))
 
 
 def clean_text(s):
-	"""Чистит текст: пустой и шаблоны Яндекса в карточку не берём."""
+	"""Чистит текст."""
 	if not s:
 		return ""
 	if "{{" in s or "}}" in s:
@@ -205,7 +205,7 @@ def clean_text(s):
 
 
 def build_rows(data, theme, image_data=None, music=None):
-	"""Собирает строки карточки: шапка, активность, системка, языки."""
+	"""Строки карточки."""
 	_, game, custom = pick_activity(data)
 	rows = [("hdr", "yegorovi@github")]
 	icon, label = STATUS.get(data.get("discord_status", "offline"), STATUS["offline"])
@@ -293,7 +293,7 @@ def build_rows(data, theme, image_data=None, music=None):
 
 
 def seg_fill(seg_cls, pal):
-	"""Цвет сегмента: свой hex, lang: или ключ палитры."""
+	"""Цвет сегмента."""
 	if seg_cls.startswith("lang:"):
 		return seg_cls[5:]
 	if seg_cls.startswith("#"):
@@ -302,7 +302,7 @@ def seg_fill(seg_cls, pal):
 
 
 def render(rows, pal):
-	"""Собирает SVG из строк карточки под палитру темы."""
+	"""Собирает SVG."""
 	y = 40
 	text_parts = []
 	rects = []
@@ -436,7 +436,7 @@ def render(rows, pal):
 
 
 def get_music():
-	"""Музыка из Яндекс.Музыки (Ynison). Фолбэк - активность Lanyard."""
+	"""Музыка из Яндекс.Музыки."""
 	info = None
 	try:
 		info = ym.fetch_now("readme")
@@ -458,7 +458,7 @@ def get_music():
 
 
 def main_once():
-	"""Один прогон: данные, музыка, запись обоих SVG в dist."""
+	"""Один прогон карточки."""
 	data = fetch()
 	music = get_music()
 	image_data = fetch_image_url(music.get("cover")) if music else None
@@ -474,7 +474,7 @@ def main_once():
 
 
 def main():
-	"""Точка входа: разовый запуск либо --watch по кругу."""
+	"""Разовый запуск либо --watch."""
 	if "--watch" in sys.argv:
 		from datetime import datetime
 		idx = sys.argv.index("--watch")
