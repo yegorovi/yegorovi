@@ -438,7 +438,7 @@ def render(rows, pal):
 
 
 def no_music_active():
-	"""Флаг !сброс музыки: файл свежее NO_MUSIC_WINDOW секунд."""
+	"""Флаг сброса музыки - файл свежее NO_MUSIC_WINDOW секунд."""
 	try:
 		age = time.time() - NO_MUSIC_FILE.stat().st_mtime
 		return age < NO_MUSIC_WINDOW
