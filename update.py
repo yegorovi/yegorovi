@@ -24,6 +24,8 @@ import ym  # noqa: E402  музыка: Яндекс.Музыка (Ynison), Lanya
 LANYARD_ID = "505825418624892939"
 HERE = Path(__file__).resolve().parent
 DIST = HERE / "dist"
+NO_MUSIC_FILE = Path("/opt/tg_bot/no_music")   # флаг !сброс музыки
+NO_MUSIC_WINDOW = 900   # окно сброса музыки, секунд
 
 FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace"
 FS = 16
@@ -435,8 +437,19 @@ def render(rows, pal):
 	return "\n".join(svg) + "\n"
 
 
+def no_music_active():
+	"""Флаг !сброс музыки: файл свежее NO_MUSIC_WINDOW секунд."""
+	try:
+		age = time.time() - NO_MUSIC_FILE.stat().st_mtime
+		return age < NO_MUSIC_WINDOW
+	except OSError:
+		return False
+
+
 def get_music():
 	"""Музыка из Яндекс.Музыки."""
+	if no_music_active():
+		return None
 	info = None
 	try:
 		info = ym.fetch_now("readme")
