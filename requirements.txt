@@ -1,0 +1,4 @@
+websockets
+yandex-music[ynison]
+Pillow
+setproctitle
