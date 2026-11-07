@@ -1,4 +1,4 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/yegorovi/yegorovi/output/neofetch-7b5197e4-dark.svg">
-  <img alt="neofetch" src="https://raw.githubusercontent.com/yegorovi/yegorovi/output/neofetch-7b5197e4-light.svg" width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/yegorovi/yegorovi/output/neofetch-06b8c2b4-dark.svg">
+  <img alt="neofetch" src="https://raw.githubusercontent.com/yegorovi/yegorovi/output/neofetch-06b8c2b4-light.svg" width="100%">
 </picture>
